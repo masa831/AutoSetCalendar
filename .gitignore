@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# 参考用フォルダを除外
+backup-gmail-main/
+
+# exeファイルを除外
+*.exe
+credentials.json
+token.pickle
+infoPersonal.py
