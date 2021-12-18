@@ -221,44 +221,41 @@ def main():
             if (dictMessage['ReleaseDate'] != '') and (dictMessage['Title'] != ''):
                 dict_list.append(dictMessage)
 
-    print(dict_list)
-
-  
-    print('--CalendarTEST-----------')
-    # カレンダーから予定を取得 
-    events_result = serviceCalendar.events().list(calendarId='primary', 
-                        timeMin=dict_day_iso['StartDay'],timeMax=dict_day_iso['EndDay'],
-                        maxResults=100, singleEvents=True,orderBy='startTime').execute()
-    # 取得した情報から内容の抜き出してeventsに格納
-    events = events_result.get('items', [])
-    # print(events_result)
-    # print(events)
-
-    # # 予定がない場合には、Not found
-    # if not events:
-    #     print('No upcoming events found.')
+    # カレンダーから予定を取得 timeMin,timeMaxはISO形式で指定
+    # events_result = serviceCalendar.events().list(calendarId='primary', 
+    #                     timeMin=dict_day_iso['StartDay'],timeMax=dict_day_iso['EndDay'],
+    #                     maxResults=100, singleEvents=True,orderBy='startTime').execute()
     # 予定があった場合には、出力
-    for event in events:
-        # 予定の日付をstartに格納
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        # print(start, event['summary'])
+    # for event in events:
+    #     # 予定の日付をstartに格納
+    #     start = event['start'].get('dateTime', event['start'].get('date'))
+    #     print(start, event['summary'])
         
-    # 書き込む予定の情報を設定
-    # body = setBody('bodytest','2021-12-20')
-    # 設定したbodyの情報で予定を作成
-    #event = serviceCalendar.events().insert(calendarId='primary', body=body).execute()
-
+    # Gmailから取得したリストに対して、カレンダーへの追加を実施
     for list in dict_list:
-        # check
-        print( list['ReleaseDate'] )
-        print( list['Title'] )
+        try:
+            # カレンダー探索用のISO形式の日付を取得
+            # list['Release']をdatetime型、ISO形式へ順次変換
+            dayISO = datetime.datetime.strptime(list['ReleaseDate'],'%Y-%m-%d').isoformat() + 'Z' 
 
-        # 取得したカレンダーにすでに同一の予定があるかを確認
+            # 取得したカレンダーにすでに同一の予定があるかを確認
+            events_result = serviceCalendar.events().list(calendarId='primary', timeMin=dayISO,
+                        maxResults=1, singleEvents=True,orderBy='startTime').execute()
+            # 取得した情報から内容の抜き出してeventsに格納
+            events = events_result.get('items', [])
 
-        # 書き込む予定の情報を設定
-        body = setBody(list['Title'],list['ReleaseDate'])
-        # 設定したbodyの情報で予定を作成
-        #event = serviceCalendar.events().insert(calendarId='primary', body=body).execute()
+            # 既に予定があるかを判定
+            if(events[0]['summary'] != list['Title']):
+                # 書き込む予定の情報を設定
+                body = setBody(list['Title'],list['ReleaseDate'])
+                # 設定したbodyの情報で予定を作成
+                event = serviceCalendar.events().insert(calendarId='primary', body=body).execute()
+                print( list['ReleaseDate']+'に'+list['Title']+'の発売予定を追加しました')
+            elif(events[0]['summary'] == list['Title']):
+                print(list['ReleaseDate']+'の'+list['Title']+'の予定はすでに追加されています。')
+
+        except:
+            print('エラーが発生しました')
 
 
 # プログラム実行！
