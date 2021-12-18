@@ -13,15 +13,10 @@ from google.auth.transport.requests import Request
 from infoPersonal import InfomationPersonal
 from infoPersonal import InfomationSearch
 
-# 参考：https://montaiblog.com/gmail-apipython/
-# https://www.yutaka-note.com/entry/2020/01/31/141843  google認証系の設定
-# https://non-dimension.com/python-googlecalendarapi/  googleCalendarの操作系
-
 # Gmail APIのスコープを設定。
-# SCOPES = ['https://www.googleapis.com/']
-# SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-SCOPES = ['https://www.googleapis.com/auth/calendar','https://www.googleapis.com/auth/gmail.readonly']
 # SCOPESを変更したときはtoken.pickleを消去して再度認証を行う必要がある点に注意
+# SCOPES = ['https://www.googleapis.com/']
+SCOPES = ['https://www.googleapis.com/auth/calendar','https://www.googleapis.com/auth/gmail.readonly']
 
 # APIに接続
 def connect_gmail():
@@ -106,12 +101,11 @@ def get_message_list(service, date_from, date_to, message_from, message_to):
 def getReleaseDateAndTitle(msrReleaseDate, msrTitle):
     # 戻り値用の辞書を定義
     dict = {'ReleaseDate':'','Title':''}
-
+    # 値格納用ローカル変数
     TitleName = '' 
     ReleaseDate = ''
 
     # メールのタイトルが予約受付開始であれば、メールの構造の中から発売日の日付を取得
-    checkTitle = ''
     checkTitle = re.search('【予約受付開始】',msrTitle)
 
     # checkTitleの値があるかを確認
@@ -162,6 +156,35 @@ def getDataISO():
     
     return dict
 
+def setBody(title,day):
+
+    # dayをdatetime型へ変換
+    tmpday = datetime.datetime.strptime(day,'%Y-%m-%d')
+    # dayに1日を加算する
+    deltaday_t = tmpday + datetime.timedelta(days=1)
+    # dayの翌日を文字列に変換
+    deltaday = deltaday_t.strftime('%Y-%m-%d')
+
+    body = {
+        # 予定のタイトル
+        'summary': title,
+        'allDayEvent': True,
+        # 予定の開始時刻
+        'start': {
+            #'dateTime': datetime.datetime(2021, 12, 17, 10, 30).isoformat(),
+            'date': day,
+            'timeZone': 'Japan'
+        },
+        # 予定の終了時刻
+        'end': {
+            # 'dateTime': datetime.datetime(2021, 12, 17, 12, 00).isoformat(),
+            'date': deltaday,
+            'timeZone': 'Japan'
+        },
+        'reminders': {'useDefault': False}
+    }
+    return body
+
 # メイン処理
 def main():
     # 情報設定用のインスタンスを設定
@@ -184,10 +207,11 @@ def main():
     #message_list = get_message_list(service, dict_day['StartDay'], dict_day['EndDay'], infoSearch.SEARCH_MAIL_ADDRESS, infoPersonal.MY_MAIL_ADDRESS)
     message_list = get_message_list(serviceGmail, dict_day['StartDay'], dict_day['EndDay'], infoSearch.SEARCH_MAIL_ADDRESS, infoPersonal.MY_MAIL_ADDRESS)
     
-    # 件名をコンソールに出力
+    # 検索したメールから必要な情報をdict_listに格納
     for message in message_list:
-        if 'Subject' in message:
+        if ('Subject' in message) and ('snippet' in message):
             dictMessage = getReleaseDateAndTitle(message['snippet'],message['Subject'])
+            # dictMessageの空欄ペアを除去
             if (dictMessage['ReleaseDate'] != '') and (dictMessage['Title'] != ''):
                 dict_list.append(dictMessage)
 
@@ -201,6 +225,7 @@ def main():
                         maxResults=100, singleEvents=True,orderBy='startTime').execute()
     # 取得した情報から内容の抜き出してeventsに格納
     events = events_result.get('items', [])
+    # print(events)
     # 予定の日付をstartに格納
     # start = events['start'].get('dateTime', events['start'].get('date'))
 
@@ -217,25 +242,14 @@ def main():
 
         # 予定の日付をstartに格納
         start = event['start'].get('dateTime', event['start'].get('date'))
-        print(start, event['summary'])
+        # print(start, event['summary'])
         
     # 書き込む予定の情報を設定
-    body = {
-        # 予定のタイトル
-        'summary': '[test]Pythonの本を読む',
-        # 予定の開始時刻 終日の場合は開始時刻だけでよいかも？
-        'start': {
-            'dateTime': datetime.datetime(2021, 12, 17, 10, 30).isoformat(),
-            'timeZone': 'Japan'
-        },
-        # 予定の終了時刻
-        'end': {
-            'dateTime': datetime.datetime(2021, 12, 17, 12, 00).isoformat(),
-            'timeZone': 'Japan'
-        }
-    }
+    body = setBody('bodytest','2021-12-20')
+    
     # 設定したbodyの情報で予定を作成
     event = serviceCalendar.events().insert(calendarId='primary', body=body).execute()
+
 
 
 # プログラム実行！
