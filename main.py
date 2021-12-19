@@ -234,6 +234,7 @@ def main():
     # Gmailから取得したリストに対して、カレンダーへの追加を実施
     for list in dict_list:
         try:
+            print('処理を開始します')
             # カレンダー探索用のISO形式の日付を取得
             # list['Release']をdatetime型、ISO形式へ順次変換
             dayISO = datetime.datetime.strptime(list['ReleaseDate'],'%Y-%m-%d').isoformat() + 'Z' 
@@ -256,6 +257,8 @@ def main():
 
         except:
             print('エラーが発生しました')
+        else:
+            print('処理は正常に終了しました')
 
 
 # プログラム実行！
