@@ -12,10 +12,10 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from infoPersonal import InfomationPersonal
 from infoPersonal import InfomationSearch
+from google.oauth2 import credentials,service_account
 
 # Gmail APIのスコープを設定。
 # SCOPESを変更したときはtoken.pickleを消去して再度認証を行う必要がある点に注意
-# SCOPES = ['https://www.googleapis.com/']
 SCOPES = ['https://www.googleapis.com/auth/calendar','https://www.googleapis.com/auth/gmail.readonly']
 
 # APIに接続
@@ -45,14 +45,54 @@ def connect_gmail():
         # アクセストークン保存（２回目以降の実行時に認証を省略するため）
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
+
     # Gmail API操作に必要なインスタンス作成
-    service = build('gmail', 'v1', credentials=creds)
     dict['serviceGmail'] = build('gmail', 'v1', credentials=creds)
     # カレンダーAPI操作に必要なインスタンス作成
     dict['serviceCalendar'] = build('calendar', 'v3', credentials=creds)
     
     # return sevice
     return dict
+
+def connect_api_service():
+     # 戻り値用の辞書を定義
+    dict = {'serviceGmail':'','serviceCalendar':''}
+    # credsを初期化
+    creds = None
+    # サービスアカウントでの認証
+    credentials = service_account.Credentials.from_service_account_file('service_credentials.json')
+    creds = credentials.with_scopes(SCOPES)
+
+    # 有効なトークンをすでに持っているかチェック（２回目以降の実行時に認証を省略するため） 
+    # if os.path.exists('token.pickle'):
+    #     with open('token.pickle', 'rb') as token:
+    #         creds = pickle.load(token)
+
+    # # トークンがない場合、アクセストークンの有効期限が切れてる
+    # # 期限切れのトークンを持っているかチェック（認証を省略するため）
+    # if not creds or not creds.valid:
+    #     # 有効期限が切れている場合、トークンをリフレッシュ
+    #     if creds and creds.expired and creds.refresh_token:
+    #         creds.refresh(Request())
+    #     # アクセストークンを要求　トークンがない場合、認証画面を表示し、認証完了後トークンを取得
+    #     else:
+    #         # credentials = service_account.Credentials.from_service_account_file('service_credentials.json')
+    #         # creds = credentials.with_scopes(SCOPES)
+    #         flow = InstalledAppFlow.from_client_secrets_file('service_credentials.json', SCOPES)
+    #         creds = flow.run_local_server()
+
+    #     # アクセストークン保存（２回目以降の実行時に認証を省略するため）
+    #     with open('token.pickle', 'wb') as token:
+    #         pickle.dump(creds, token)
+
+    # Gmail API操作に必要なインスタンス作成
+    dict['serviceGmail'] = build('gmail', 'v1', credentials=creds)
+    # カレンダーAPI操作に必要なインスタンス作成
+    dict['serviceCalendar'] = build('calendar', 'v3', credentials=creds)
+
+    # return sevice
+    return dict
+
 
 # メールの一覧を取得
 def get_message_list(service, date_from, date_to, message_from, message_to):
@@ -205,7 +245,12 @@ def main():
     dict_list = []
 
     # gmail/calendar操作用のインスタンス作成
-    service = connect_gmail()
+    # service = connect_gmail()
+    # serviceGmail = service['serviceGmail']
+    # serviceCalendar = service['serviceCalendar']
+
+    # サービスアカウントテスト
+    service = connect_api_service()
     serviceGmail = service['serviceGmail']
     serviceCalendar = service['serviceCalendar']
 

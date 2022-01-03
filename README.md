@@ -12,3 +12,8 @@ https://montaiblog.com/gmail-apipython/
 googleCalendarの操作系
 
 https://non-dimension.com/python-googlecalendarapi/  
+
+リフレッシュトークンがうまく動かない場合の対処法[未解決]
+
+一度token.pickleを消去して、再度アクセス認証をすることで再度動くことは確認済み
+https://www.cdatablog.jp/entry/gcprefreshtokengrant

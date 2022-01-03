@@ -133,6 +133,6 @@ backup-gmail-main/
 
 # exeファイルを除外
 *.exe
-credentials.json
+*.json
 token.pickle
 infoPersonal.py
