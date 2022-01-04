@@ -19,7 +19,7 @@ from google.oauth2 import credentials,service_account
 SCOPES = ['https://www.googleapis.com/auth/calendar','https://www.googleapis.com/auth/gmail.readonly']
 
 # APIに接続
-def connect_gmail():
+def connect_googleapi():
     # Google にcalendar/gmailへのアクセストークンを要求してcredsに格納します。
     # 戻り値用の辞書を定義
     dict = {'serviceGmail':'','serviceCalendar':''}
@@ -54,6 +54,7 @@ def connect_gmail():
     # return sevice
     return dict
 
+# google apiのサービスアカウントでログインするにはgoogle workspace(有料)のアカウント作成が必要
 def connect_api_service():
      # 戻り値用の辞書を定義
     dict = {'serviceGmail':'','serviceCalendar':''}
@@ -62,28 +63,6 @@ def connect_api_service():
     # サービスアカウントでの認証
     credentials = service_account.Credentials.from_service_account_file('service_credentials.json')
     creds = credentials.with_scopes(SCOPES)
-
-    # 有効なトークンをすでに持っているかチェック（２回目以降の実行時に認証を省略するため） 
-    # if os.path.exists('token.pickle'):
-    #     with open('token.pickle', 'rb') as token:
-    #         creds = pickle.load(token)
-
-    # # トークンがない場合、アクセストークンの有効期限が切れてる
-    # # 期限切れのトークンを持っているかチェック（認証を省略するため）
-    # if not creds or not creds.valid:
-    #     # 有効期限が切れている場合、トークンをリフレッシュ
-    #     if creds and creds.expired and creds.refresh_token:
-    #         creds.refresh(Request())
-    #     # アクセストークンを要求　トークンがない場合、認証画面を表示し、認証完了後トークンを取得
-    #     else:
-    #         # credentials = service_account.Credentials.from_service_account_file('service_credentials.json')
-    #         # creds = credentials.with_scopes(SCOPES)
-    #         flow = InstalledAppFlow.from_client_secrets_file('service_credentials.json', SCOPES)
-    #         creds = flow.run_local_server()
-
-    #     # アクセストークン保存（２回目以降の実行時に認証を省略するため）
-    #     with open('token.pickle', 'wb') as token:
-    #         pickle.dump(creds, token)
 
     # Gmail API操作に必要なインスタンス作成
     dict['serviceGmail'] = build('gmail', 'v1', credentials=creds)
@@ -245,14 +224,14 @@ def main():
     dict_list = []
 
     # gmail/calendar操作用のインスタンス作成
-    # service = connect_gmail()
-    # serviceGmail = service['serviceGmail']
-    # serviceCalendar = service['serviceCalendar']
-
-    # サービスアカウントテスト
-    service = connect_api_service()
+    service = connect_googleapi()
     serviceGmail = service['serviceGmail']
     serviceCalendar = service['serviceCalendar']
+
+    # サービスアカウントテスト
+    # service = connect_api_service()
+    # serviceGmail = service['serviceGmail']
+    # serviceCalendar = service['serviceCalendar']
 
     # 検索条件に一致したメールのタイトルを取得
     #message_list = get_message_list(service, dict_day['StartDay'], dict_day['EndDay'], infoSearch.SEARCH_MAIL_ADDRESS, infoPersonal.MY_MAIL_ADDRESS)
