@@ -18,6 +18,8 @@ from google.oauth2 import credentials,service_account
 # SCOPESを変更したときはtoken.pickleを消去して再度認証を行う必要がある点に注意
 SCOPES = ['https://www.googleapis.com/auth/calendar','https://www.googleapis.com/auth/gmail.readonly']
 
+
+# 2022/03/26　APIに接続できない事象発生中
 # APIに接続
 def connect_googleapi():
     # Google にcalendar/gmailへのアクセストークンを要求してcredsに格納します。
