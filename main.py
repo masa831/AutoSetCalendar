@@ -158,7 +158,7 @@ def getDate():
     dict = {'EndDay':'','StartDay':''}
     # プログラム起動時の日付とその30日前の日付を取得
     dt_now = datetime.datetime.now()
-    dt_diff = datetime.timedelta(days=30)
+    dt_diff = datetime.timedelta(days=50)
     dt_before = dt_now - dt_diff
 
     dict['EndDay'] =dt_now.strftime('%Y-%m-%d')
@@ -258,33 +258,37 @@ def main():
     #     print(start, event['summary'])
         
     # Gmailから取得したリストに対して、カレンダーへの追加を実施
-    for list in dict_list:
-        try:
-            print('処理を開始します')
-            # カレンダー探索用のISO形式の日付を取得
-            # list['Release']をdatetime型、ISO形式へ順次変換
-            dayISO = datetime.datetime.strptime(list['ReleaseDate'],'%Y-%m-%d').isoformat() + 'Z' 
+    # 上段の処理でカレンダーへの追加情報があるかを判定する
+    if len(dict_list) == 0:
+        print('カレンダーへの追加はありません')
+    else:
+        for list in dict_list:
+            try:
+                print('処理を開始します')
+                # カレンダー探索用のISO形式の日付を取得
+                # list['Release']をdatetime型、ISO形式へ順次変換
+                dayISO = datetime.datetime.strptime(list['ReleaseDate'],'%Y-%m-%d').isoformat() + 'Z' 
 
-            # 取得したカレンダーにすでに同一の予定があるかを確認
-            events_result = serviceCalendar.events().list(calendarId='primary', timeMin=dayISO,
-                        maxResults=1, singleEvents=True,orderBy='startTime').execute()
-            # 取得した情報から内容の抜き出してeventsに格納
-            events = events_result.get('items', [])
+                # 取得したカレンダーにすでに同一の予定があるかを確認
+                events_result = serviceCalendar.events().list(calendarId='primary', timeMin=dayISO,
+                            maxResults=1, singleEvents=True,orderBy='startTime').execute()
+                # 取得した情報から内容の抜き出してeventsに格納
+                events = events_result.get('items', [])
 
-            # 既に予定があるかを判定
-            if(events[0]['summary'] != list['Title']):
-                # 書き込む予定の情報を設定
-                body = setBody(list['Title'],list['ReleaseDate'])
-                # 設定したbodyの情報で予定を作成
-                event = serviceCalendar.events().insert(calendarId='primary', body=body).execute()
-                print( list['ReleaseDate']+'に'+list['Title']+'の発売予定を追加しました')
-            elif(events[0]['summary'] == list['Title']):
-                print(list['ReleaseDate']+'の'+list['Title']+'の予定はすでに追加されています。')
+                # 既に予定があるかを判定
+                if(events[0]['summary'] != list['Title']):
+                    # 書き込む予定の情報を設定
+                    body = setBody(list['Title'],list['ReleaseDate'])
+                    # 設定したbodyの情報で予定を作成
+                    event = serviceCalendar.events().insert(calendarId='primary', body=body).execute()
+                    print( list['ReleaseDate']+'に'+list['Title']+'の発売予定を追加しました')
+                elif(events[0]['summary'] == list['Title']):
+                    print(list['ReleaseDate']+'の'+list['Title']+'の予定はすでに追加されています。')
 
-        except:
-            print('エラーが発生しました')
-        else:
-            print('処理は正常に終了しました')
+            except:
+                print('エラーが発生しました')
+            else:
+                print('処理は正常に終了しました')
 
 
 # プログラム実行！

@@ -1,4 +1,4 @@
-%echo off
+% echo off
 rem このファイルの配置フォルダをカレントにする
 pushd %0\..
 rem 画面をクリア
