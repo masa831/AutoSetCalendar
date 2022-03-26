@@ -25,3 +25,7 @@ google apiのサービスアカウントでログインするにはgoogle worksp
 `https://messefor.hatenablog.com/entry/2020/10/08/080414`
 `https://zenn.dev/antyuntyun/articles/python_google_drive`
 
+## エラー記録
+
+2022/03/26 googleAPIでログインできない事象発生中  
+
