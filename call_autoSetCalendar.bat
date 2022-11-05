@@ -5,6 +5,5 @@ rem 画面をクリア
 cls
 rem pythonスクリプトを実行
 python C:\Users\zeroc\work\autoSetCalendar\main.py
-rem 実行するpythonスクリプトファイル"hello.py"はフルパスで指定します。
-rem 60秒間待機
+rem 30秒間待機
 timeout /t 30

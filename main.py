@@ -5,7 +5,6 @@ import datetime
 import re
 import pickle
 import os.path
-import base64
 from re import sub
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -67,7 +66,7 @@ def connect_api_service():
     creds = credentials.with_scopes(SCOPES)
 
     # Gmail API操作に必要なインスタンス作成
-    dict['serviceGmail'] = build('gmail', 'v1', credentials=creds)
+    # dict['serviceGmail'] = build('gmail', 'v1', credentials=creds)
     # カレンダーAPI操作に必要なインスタンス作成
     dict['serviceCalendar'] = build('calendar', 'v3', credentials=creds)
 
@@ -214,6 +213,7 @@ def setBody(title,day):
 
 # メイン処理
 def main():
+    print('処理を開始します')
     # 情報設定用のインスタンスを設定
     infoPersonal = InfomationPersonal()
     infoSearch = InfomationSearch()
@@ -232,14 +232,14 @@ def main():
 
     # サービスアカウントテスト
     # service = connect_api_service()
-    # serviceGmail = service['serviceGmail']
+    # # serviceGmail = service['serviceGmail']
     # serviceCalendar = service['serviceCalendar']
 
     # 検索条件に一致したメールのタイトルを取得
     #message_list = get_message_list(service, dict_day['StartDay'], dict_day['EndDay'], infoSearch.SEARCH_MAIL_ADDRESS, infoPersonal.MY_MAIL_ADDRESS)
     message_list = get_message_list(serviceGmail, dict_day['StartDay'], dict_day['EndDay'], infoSearch.SEARCH_MAIL_ADDRESS, infoPersonal.MY_MAIL_ADDRESS)
     
-    # 検索したメールから必要な情報をdict_listに格納
+    # # 検索したメールから必要な情報をdict_listに格納
     for message in message_list:
         if ('Subject' in message) and ('snippet' in message):
             dictMessage = getReleaseDateAndTitle(message['snippet'],message['Subject'])
@@ -247,12 +247,12 @@ def main():
             if (dictMessage['ReleaseDate'] != '') and (dictMessage['Title'] != ''):
                 dict_list.append(dictMessage)
 
-    # カレンダーから予定を取得 timeMin,timeMaxはISO形式で指定
+    # # カレンダーから予定を取得 timeMin,timeMaxはISO形式で指定
     # events_result = serviceCalendar.events().list(calendarId='primary', 
     #                     timeMin=dict_day_iso['StartDay'],timeMax=dict_day_iso['EndDay'],
     #                     maxResults=100, singleEvents=True,orderBy='startTime').execute()
-    # 予定があった場合には、出力
-    # for event in events:
+    # # 予定があった場合には、出力
+    # for event in events_result:
     #     # 予定の日付をstartに格納
     #     start = event['start'].get('dateTime', event['start'].get('date'))
     #     print(start, event['summary'])
@@ -264,31 +264,42 @@ def main():
     else:
         for list in dict_list:
             try:
-                print('処理を開始します')
                 # カレンダー探索用のISO形式の日付を取得
                 # list['Release']をdatetime型、ISO形式へ順次変換
-                dayISO = datetime.datetime.strptime(list['ReleaseDate'],'%Y-%m-%d').isoformat() + 'Z' 
-
+                daytmp = datetime.datetime.strptime(list['ReleaseDate'],'%Y-%m-%d')
+                StartDay = daytmp.isoformat() + 'Z'
+                EndDay = datetime.datetime(daytmp.year,daytmp.month,daytmp.day,23,59).isoformat() + 'Z'
+                
                 # 取得したカレンダーにすでに同一の予定があるかを確認
-                events_result = serviceCalendar.events().list(calendarId='primary', timeMin=dayISO,
-                            maxResults=1, singleEvents=True,orderBy='startTime').execute()
+                events_result = serviceCalendar.events().list(calendarId='primary', timeMin=StartDay, timeMax=EndDay,
+                            maxResults=10, singleEvents=True,orderBy='startTime').execute()
                 # 取得した情報から内容の抜き出してeventsに格納
                 events = events_result.get('items', [])
+                str_case = ""
 
-                # 既に予定があるかを判定
-                if(events[0]['summary'] != list['Title']):
+                for numSetCalName in range(len(events_result.get('items', []))):
+                    # 既に予定があるかを判定
+                    str_case = "add_event"
+                    if(events[numSetCalName]['summary'] == list['Title']):
+                        str_case = "already"
+                        break
+
+                if str_case == "add_event":
                     # 書き込む予定の情報を設定
                     body = setBody(list['Title'],list['ReleaseDate'])
                     # 設定したbodyの情報で予定を作成
                     event = serviceCalendar.events().insert(calendarId='primary', body=body).execute()
                     print( list['ReleaseDate']+'に'+list['Title']+'の発売予定を追加しました')
-                elif(events[0]['summary'] == list['Title']):
+                elif str_case == "already":
                     print(list['ReleaseDate']+'の'+list['Title']+'の予定はすでに追加されています。')
-
+                else:
+                    pass
             except:
                 print('エラーが発生しました')
             else:
-                print('処理は正常に終了しました')
+                pass
+            
+    print('処理は正常に終了しました')
 
 
 # プログラム実行！
