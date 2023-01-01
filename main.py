@@ -7,8 +7,17 @@ from googleapiclient.discovery import build
 from infoPersonal import InfomationPersonal,InfomationSearch
 import service_gmail,service_googlecalendar
 
-# 日付取得関数_str
 def getDate():
+    """日付取得用関数
+
+    プログラム実行時の日付(EndDay)とその30日前の日付(StartDay)を取得
+    辞書で値を返す
+
+    Args:None
+
+    Returns:
+        dict = {'EndDay':'xxxx-xx-xx','StartDay':'xxxx-xx-xx'}
+    """
     # 戻り値用の辞書を定義
     dict = {'EndDay':'','StartDay':''}
     # プログラム起動時の日付とその30日前の日付を取得

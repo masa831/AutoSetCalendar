@@ -20,6 +20,19 @@ credentialsPath = "credential/cred_gmail.json"
 # 同じディレクトリにあるファイルならファイル名だけでOK
 
 def gmail_init():
+    """gmailへのアクセス
+
+    gmailへのアクセスを実施
+
+    Args:None
+
+    Returns:
+        serviceインスタンス(gmail)
+
+    Note:
+        token.pickleを使用するパターンでは期限が切れるため、こちらの形式に変更
+
+    """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -41,6 +54,22 @@ def gmail_init():
 
 # メールの一覧を取得
 def get_message_list(service, date_from, date_to, message_from, message_to):
+    """gmailから対象のメールを検索
+
+    Args:
+        service (service(gmail)): gmailのインスタンス
+        data_from (str:'xxxx-xx-xx'): メール取得の開始日
+        data_to (str:'xxxx-xx-xx'): メール取得の終了日
+        message_from (str): 検索対象のメールアドレス
+        message_to (str): 自身のメールアドレス
+
+    Returns:
+        str[]: 検索結果のメールの中身を取得
+
+    Examples:
+        message_list = get_message_list(service, '2022-11-20', '2022-12-31', 'xx@abc.com', 'xxx@gmail.com')
+
+    """
     message_list = []
     query = ''
     # 検索用クエリを指定する
@@ -55,7 +84,6 @@ def get_message_list(service, date_from, date_to, message_from, message_to):
 
     # メールIDの一覧を取得する(最大100件)
     messageid_list = service.users().messages().list(userId='me', maxResults=100, q=query).execute()
-
     # 該当するメールが存在しない場合は、処理中断
     if messageid_list['resultSizeEstimate'] == 0:
         print('Message is not found')
@@ -79,11 +107,21 @@ def get_message_list(service, date_from, date_to, message_from, message_to):
         row['snippet'] = message_detail['snippet']
         # message_listにrowを格納
         message_list.append(row)
-
     return message_list
 
-# get_message_listからタイトルと日付を取得する関数
 def getReleaseDateAndTitle(msrReleaseDate, msrTitle):
+    """タイトルと日付を加工する関数
+
+    get_message_listから取得したタイトルと日付を使いやすいように加工する
+
+    Args:
+        msrReleaseDate (str): 日付を含んだ文字列(gmail[snippet])
+        msrTitle (str): タイトルを含んだ文字列(gmail[Subject])
+
+    Returns:
+        dict: {'ReleaseDate':'xxxx-xx-xx','Title':'xxxx'}
+
+    """
     # 戻り値用の辞書を定義
     dict = {'ReleaseDate':'','Title':''}
     # 値格納用ローカル変数
@@ -113,10 +151,18 @@ def getReleaseDateAndTitle(msrReleaseDate, msrTitle):
     # dictに格納
     dict['ReleaseDate'] = ReleaseDate
     dict['Title'] = TitleName
-
     return dict
 
 def getlist(message_list):
+    """get_message_listからタイトルと日付を取得する関数
+
+    Args:
+        str[]: 検索結果のメールの中身を取得
+
+    Returns:
+        dict_list: [{'ReleaseDate':'xxxx-xx-xx','Title':'xxxx'}, xx]
+
+    """
     ret_list = []
     for message in message_list:
         if ('Subject' in message) and ('snippet' in message):

@@ -18,14 +18,35 @@ service = googleapiclient.discovery.build('calendar', 'v3', credentials=gapi_cre
 credentialsPath = 'credential/google_service_key.json'
 
 def gCalendar_init():
+    """googleCalendarへのアクセス
+
+    googleCalendarへのアクセスを実施
+
+    Args:None
+
+    Returns:
+        serviceインスタンス(googleCalendar)
+
+    """
     # Googleの認証情報をファイルから読み込む
     gapi_creds = google.auth.load_credentials_from_file(credentialsPath, SCOPES)[0]
     # APIと対話するためのResourceオブジェクトを構築する
     service = googleapiclient.discovery.build('calendar', 'v3', credentials=gapi_creds)
     return service
 
-# 書き込む予定情報を用意する
 def setBody(title,day):
+    """書き込む予定情報を用意する
+
+    引数dayに引数titleの終日の予定を作成するためのBodyを作成
+
+    Args:
+        title (str): 予定のタイトル
+        day (str): 予定の日時
+
+    Returns:
+        body
+
+    """
     # dayをdatetime型へ変換
     tmpday = datetime.datetime.strptime(day,'%Y-%m-%d')
     # dayに1日を加算する
@@ -56,6 +77,14 @@ def setBody(title,day):
     return body
 
 def writeCalendar(serviceCalendar,dict_list,CALENDAR_ID):
+    """カレンダーに予定を追加する
+
+    Args:
+        service (service(gmail)): gmailのインスタンス
+        dict_list ([{'ReleaseDate':'xxxx-xx-xx','Title':'xxxx'},xx]): タイトルと日付を格納
+        CALENDAR_ID (str): 追加するカレンダーのID(xx@gmail.com)
+
+    """
     if len(dict_list) == 0:
         print('No New Item')
         return
