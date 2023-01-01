@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 # 参考用フォルダを除外
-backup-gmail-main/
+backup/
 
 # exeファイルを除外
 *.exe
