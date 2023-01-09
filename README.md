@@ -30,6 +30,10 @@ google apiのサービスアカウントでログインするにはgoogle worksp
 
 ## エラー記録
 
+2023/01/09 gmail_initでエラー
+→credentialフォルダの中身をcred_gmail.json,google_service_key.jsonのみすることで動作を確認
+→もしかすると定期的にtoken.jsonの削除が必要かも？
+
 2022/03/26 googleAPIでログインできない事象発生中
 →メールから取得する情報が空の時に想定しない形で終了していた。修正済み
 

@@ -101,11 +101,10 @@ def writeCalendar(serviceCalendar,dict_list,CALENDAR_ID):
                     maxResults=10, singleEvents=True,orderBy='startTime').execute()
         # 取得した情報から内容の抜き出してeventsに格納
         events = events_result.get('items', [])
-        str_case = ""
+        str_case = "add_event" # 新規追加sttで初期化
 
         for numSetCalName in range(len(events_result.get('items', []))):
-            # 既に予定があるかを判定
-            str_case = "add_event"
+            # 既に予定があるかを判定 str_case->alreadyに変更
             if(events[numSetCalName]['summary'] == list['Title']):
                 str_case = "already"
                 break
@@ -119,6 +118,7 @@ def writeCalendar(serviceCalendar,dict_list,CALENDAR_ID):
         elif str_case == "already":
             print('This Item already exit : [' + list['ReleaseDate']+']['+list['Title']+']')
         else:
+            print('check code! unexpected behavior')
             pass
 
 # 単体テスト用Main関数

@@ -39,7 +39,7 @@ def getDataISO():
     dt_before = dt_now - dt_diff
 
     # 'Z' indicates UTC time
-    dict['EndDay'] =dt_now.isoformat() + 'Z'  
+    dict['EndDay'] =dt_now.isoformat() + 'Z'
     dict['StartDay'] = dt_before.isoformat() + 'Z'
     return dict
 
