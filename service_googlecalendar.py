@@ -116,7 +116,7 @@ def writeCalendar(serviceCalendar,dict_list,CALENDAR_ID):
             event = serviceCalendar.events().insert(calendarId=CALENDAR_ID, body=body).execute()
             print('Add Item : [' + list['ReleaseDate'] +']['+ list['Title']+']')
         elif str_case == "already":
-            print('This Item already exit : [' + list['ReleaseDate']+']['+list['Title']+']')
+            print('The Calendar already has this Item  : [' + list['ReleaseDate']+']['+list['Title']+']')
         else:
             print('check code! unexpected behavior')
             pass

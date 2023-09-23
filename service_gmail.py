@@ -176,11 +176,11 @@ def getlist(message_list):
 # 単体テスト用Main関数
 def main():
     service = gmail_init()
-    target_address = 'xx@abc.com'
-    address = 'xxx@gmail.com'
-    # message_list = get_message_list(service, '2022-11-20', '2022-12-31', target_address, address)
-    # dict_list = getlist(message_list)
-    # print(dict_list)
+    target_address = 'alert@shop-bell.com'
+    address = 'xxxx@gmail.com'
+    message_list = get_message_list(service, '2022-11-20', '2022-12-31', target_address, address)
+    dict_list = getlist(message_list)
+    print(dict_list)
 
 # プログラム実行！
 if __name__ == '__main__':
