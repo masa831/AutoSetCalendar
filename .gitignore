@@ -136,3 +136,9 @@ backup/
 *.json
 token.pickle
 infoPersonal.py
+/src/userdata.py
+/driver
+/env_c
+/_*.py
+/old
+_*.ipynb

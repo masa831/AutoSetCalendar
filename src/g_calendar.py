@@ -1,0 +1,146 @@
+import datetime
+import googleapiclient.discovery
+import google.auth
+from src.cstm_logging import CstmLogger
+
+# googleCalendar ServiceAccount Login Version
+# 参考URL
+# https://kosuke-space.com/google-calendar-api-python
+
+class MyCalendar():
+    def __init__(self,address,data_list):
+        self.address = address
+        self.data_list = data_list
+        self.SCOPES = ['https://www.googleapis.com/auth/calendar']
+        self.credentialsPath = 'credential/google_service_key.json'
+        self.log = CstmLogger()
+        self.log.set_handler()
+
+    def run(self):
+        self.log.debug('start gCalendar_Init')
+        service = self.gCalendar_init()
+        self.log.debug('start: write_gCalendar')
+        self.writeCalendar(service,self.data_list,self.address)
+        self.log.debug('process complete')
+        self.log.release_handler()
+
+    def gCalendar_init(self):
+        """googleCalendarへのアクセス
+
+        googleCalendarへのアクセスを実施
+
+        Args:None
+
+        Returns:
+            serviceインスタンス(googleCalendar)
+
+        """
+        # Googleの認証情報をファイルから読み込む
+        gapi_creds = google.auth.load_credentials_from_file(self.credentialsPath, self.SCOPES)[0]
+        # APIと対話するためのResourceオブジェクトを構築する
+        service = googleapiclient.discovery.build('calendar', 'v3', credentials=gapi_creds)
+        return service
+
+    def setBody(self,title,day):
+        """書き込む予定情報を用意する
+
+        引数dayに引数titleの終日の予定を作成するためのBodyを作成
+
+        Args:
+            title (str): 予定のタイトル
+            day (str): 予定の日時
+
+        Returns:
+            body
+
+        """
+        # dayをdatetime型へ変換
+        tmpday = datetime.datetime.strptime(day,'%Y-%m-%d')
+        # dayに1日を加算する
+        deltaday_t = tmpday + datetime.timedelta(days=1)
+        # dayの翌日を文字列に変換
+        deltaday = deltaday_t.strftime('%Y-%m-%d')
+
+        # 終日の予定を入れるときはdateにstrを格納。
+        # 時間指定の予定を入れるときはdateTimeにdatetimeのISO形式を格納
+        body = {
+            # 予定のタイトル
+            'summary': title,
+            'allDayEvent': True,
+            # 予定の開始時刻
+            'start': {
+                'date': day,
+                'timeZone': 'Japan'
+            },
+            # 予定の終了時刻
+            'end': {
+                'date': deltaday,
+                'timeZone': 'Japan'
+            },
+            'reminders': {'useDefault': False}
+        }
+        return body
+
+    def writeCalendar(self,serviceCalendar,dict_list,CALENDAR_ID):
+        """カレンダーに予定を追加する
+
+        Args:
+            service (service(gmail)): gmailのインスタンス
+            dict_list ([{'ReleaseDate':'xxxx-xx-xx','Title':'xxxx'},xx]): タイトルと日付を格納
+            CALENDAR_ID (str): 追加するカレンダーのID(xx@gmail.com)
+
+        """
+        if len(dict_list) == 0:
+            print('No New Item')
+            return
+
+        for list in dict_list:
+            # カレンダー探索用のISO形式の日付を取得
+            # list['Release']をdatetime型、ISO形式へ順次変換
+            daytmp = datetime.datetime.strptime(list['ReleaseDate'],'%Y-%m-%d')
+            StartDay = daytmp.isoformat() + 'Z'
+            EndDay = datetime.datetime(daytmp.year,daytmp.month,daytmp.day,23,59).isoformat() + 'Z'
+
+            # 取得したカレンダーにすでに同一の予定があるかを確認
+            events_result = serviceCalendar.events().list(calendarId=CALENDAR_ID, timeMin=StartDay, timeMax=EndDay,
+                        maxResults=10, singleEvents=True,orderBy='startTime').execute()
+            # 取得した情報から内容の抜き出してeventsに格納
+            events = events_result.get('items', [])
+            str_case = "add_event" # 新規追加sttで初期化
+
+            for numSetCalName in range(len(events_result.get('items', []))):
+                # 既に予定があるかを判定 str_case->alreadyに変更
+                if(events[numSetCalName]['summary'] == list['Title']):
+                    str_case = "already"
+                    break
+
+            if str_case == "add_event":
+                # 書き込む予定の情報を設定
+                body = self.setBody(list['Title'],list['ReleaseDate'])
+                # 設定したbodyの情報で予定を作成
+                event = serviceCalendar.events().insert(calendarId=CALENDAR_ID, body=body).execute()
+                print('Add Item : [' + list['ReleaseDate'] +']['+ list['Title']+']')
+            elif str_case == "already":
+                print('The Calendar already has this Item  : [' + list['ReleaseDate']+']['+list['Title']+']')
+            else:
+                print('check code! unexpected behavior')
+                pass
+
+# クラス変更後のリファクタは未実施
+# 単体テスト用Main関数
+# def main():
+#     address = 'xx@gmail.com' # 使用者のアドレスを使用
+#     service = gCalendar_init()
+
+#     list = [{'ReleaseDate': '2024-04-21', 'Title': 'Test1'},
+#     {'ReleaseDate': '2024-04-22', 'Title': 'test2'},
+#     {'ReleaseDate': '2024-04-21', 'Title': 'Test1'}]
+#     writeCalendar(service,list,address)
+
+#     no_list = []
+#     writeCalendar(service,no_list,address)
+
+
+# プログラム実行！
+# if __name__ == '__main__':
+#     main()
