@@ -6,6 +6,14 @@ gmailから指定の情報を取得して、googleCalenderに反映するプロ�
 
 Exe化はせず、ローカルでbatファイルを用意して実行中
 
+## 動作準備
+
+/driverフォルダにchromedriver.exeを配置
+/credentialフォルダに以下のファイルを配置
+- cred_gmail.json
+- google_service_key.json
+- token.json
+
 ## 問題点
 
 gmailの認証が7日間で切れてしまうため、切れた後は再度ログイン処理が必要。
